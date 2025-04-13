@@ -3,12 +3,7 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
-  release:
-    types:
-      - created
+      - self
 
 env:
   IMAGE_NAME: zerotier
