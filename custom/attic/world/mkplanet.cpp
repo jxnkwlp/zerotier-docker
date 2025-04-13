@@ -1,0 +1,275 @@
+/*
+ * ZeroTier One - Network Virtualization Everywhere
+ * Copyright (C) 2011-2016  ZeroTier, Inc.  https://www.zerotier.com/
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
+ * This utility makes the World from the configuration specified below.
+ * It probably won't be much use to anyone outside ZeroTier, Inc. except
+ * for testing and experimentation purposes.
+ *
+ * If you want to make your own World you must edit this file.
+ *
+ * When run, it expects two files in the current directory:
+ *
+ * previous.c25519 - key pair to sign this world (key from previous world)
+ * current.c25519 - key pair whose public key should be embedded in this world
+ *
+ * If these files do not exist, they are both created with the same key pair
+ * and a self-signed initial World is born.
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
+#include <algorithm>
+
+#include <node/Constants.hpp>
+#include <node/World.hpp>
+#include <node/C25519.hpp>
+#include <node/Identity.hpp>
+#include <node/InetAddress.hpp>
+#include <osdep/OSUtils.hpp>
+
+using namespace ZeroTier;
+using json = nlohmann::json;
+
+void printHelp()
+{
+	printf("Usage: mkplanet [options]\n");
+	printf("Options:\n");
+	printf("  -h, --help          Display this help message\n");
+	printf("  -j, --json2bin      Convert from JSON file to planet\n");
+	printf("  -b, --bin2json      Convert from planet to JSON format\n");
+}
+
+int jsonToBinary()
+{
+	std::string previous, current;
+	if ((!OSUtils::readFile("previous.c25519", previous)) || (!OSUtils::readFile("current.c25519", current)))
+	{
+		C25519::Pair np(C25519::generate());
+		previous = std::string();
+		previous.append((const char *)np.pub.data, ZT_C25519_PUBLIC_KEY_LEN);
+		previous.append((const char *)np.priv.data, ZT_C25519_PRIVATE_KEY_LEN);
+		current = previous;
+		OSUtils::writeFile("previous.c25519", previous);
+		OSUtils::writeFile("current.c25519", current);
+		fprintf(stderr, "INFO: created initial world keys: previous.c25519 and current.c25519 (both initially the same)" ZT_EOL_S);
+	}
+
+	if ((previous.length() != (ZT_C25519_PUBLIC_KEY_LEN + ZT_C25519_PRIVATE_KEY_LEN)) || (current.length() != (ZT_C25519_PUBLIC_KEY_LEN + ZT_C25519_PRIVATE_KEY_LEN)))
+	{
+		fprintf(stderr, "FATAL: previous.c25519 or current.c25519 empty or invalid" ZT_EOL_S);
+		return 1;
+	}
+	C25519::Pair previousKP;
+	memcpy(previousKP.pub.data, previous.data(), ZT_C25519_PUBLIC_KEY_LEN);
+	memcpy(previousKP.priv.data, previous.data() + ZT_C25519_PUBLIC_KEY_LEN, ZT_C25519_PRIVATE_KEY_LEN);
+	C25519::Pair currentKP;
+	memcpy(currentKP.pub.data, current.data(), ZT_C25519_PUBLIC_KEY_LEN);
+	memcpy(currentKP.priv.data, current.data() + ZT_C25519_PUBLIC_KEY_LEN, ZT_C25519_PRIVATE_KEY_LEN);
+
+	// =========================================================================
+	// EDIT BELOW HERE
+
+	std::vector<World::Root> roots;
+
+	const uint64_t id = ZT_WORLD_ID_EARTH;
+	const uint64_t ts = 1567191349589ULL; // August 30th, 2019
+
+	std::string fileContent;
+	if (!OSUtils::readFile("planet.json", fileContent))
+	{
+		fprintf(stderr, "Failed to open planet file." ZT_EOL_S);
+		return 1;
+	}
+
+	// // Los Angeles
+	// roots.push_back(World::Root());
+	// roots.back().identity = Identity("3a46f1bf30:0:76e66fab33e28549a62ee2064d1843273c2c300ba45c3f20bef02dbad225723bb59a9bb4b13535730961aeecf5a163ace477cceb0727025b99ac14a5166a09a3");
+	// roots.back().stableEndpoints.push_back(InetAddress("185.180.13.82/9993"));
+	// roots.back().stableEndpoints.push_back(InetAddress("2a02:6ea0:c815::/9993"));
+
+	// // Miami
+	// roots.push_back(World::Root());
+	// roots.back().identity = Identity("de8950a8b2:0:1b3ada8251b91b6b6fa6535b8c7e2460918f4f729abdec97d3c7f3796868fb02f0de0b0ee554b2d59fc3524743eebfcf5315e790ed6d92db5bd10c28c09b40ef");
+	// roots.back().stableEndpoints.push_back(InetAddress("207.246.73.245/443"));
+	// roots.back().stableEndpoints.push_back(InetAddress("2001:19f0:9002:5cb:ec4:7aff:fe8f:69d9/443"));
+
+	// // Tokyo
+	// roots.push_back(World::Root());
+	// roots.back().identity = Identity("34e0a5e174:0:93efb50934788f856d5cfb9ca5be88e85b40965586b75befac900df77352c145a1ba7007569d37c77bfe52c0999f3bdc67a47a4a6000b720a883ce47aa2fb7f8");
+	// roots.back().stableEndpoints.push_back(InetAddress("147.75.92.2/443"));
+	// roots.back().stableEndpoints.push_back(InetAddress("2604:1380:3000:7100::1/443"));
+
+	// // Amsterdam
+	// roots.push_back(World::Root());
+	// roots.back().identity = Identity("992fcf1db7:0:206ed59350b31916f749a1f85dffb3a8787dcbf83b8c6e9448d4e3ea0e3369301be716c3609344a9d1533850fb4460c50af43322bcfc8e13d3301a1f1003ceb6");
+	// roots.back().stableEndpoints.push_back(InetAddress("195.181.173.159/443"));
+	// roots.back().stableEndpoints.push_back(InetAddress("2a02:6ea0:c024::/443"));
+
+	json config = json::parse(fileContent);
+
+	for (auto &root : config["roots"])
+	{
+		roots.push_back(World::Root());
+		roots.back().identity = Identity(root["identity"].get<std::string>().c_str());
+		for (auto &endpoint : root["stableEndpoints"])
+		{
+			roots.back().stableEndpoints.push_back(InetAddress(endpoint.get<std::string>().c_str()));
+		}
+	}
+
+	fprintf(stderr, "INFO: generating and signing id==%llu ts==%llu" ZT_EOL_S, (unsigned long long)id, (unsigned long long)ts);
+
+	World nw = World::make(World::TYPE_PLANET, id, ts, currentKP.pub, roots, previousKP);
+
+	Buffer<ZT_WORLD_MAX_SERIALIZED_LENGTH> outtmp;
+	nw.serialize(outtmp, false);
+	World testw;
+	testw.deserialize(outtmp, 0);
+	if (testw != nw)
+	{
+		fprintf(stderr, "FATAL: serialization test failed!" ZT_EOL_S);
+		return 1;
+	}
+
+	OSUtils::writeFile("planet", std::string((const char *)outtmp.data(), outtmp.size()));
+	fprintf(stderr, "INFO: planet written with %u bytes of binary world data." ZT_EOL_S, outtmp.size());
+
+	// fprintf(stdout, ZT_EOL_S);
+	// fprintf(stdout, "#define ZT_DEFAULT_WORLD_LENGTH %u" ZT_EOL_S, outtmp.size());
+	// fprintf(stdout, "static const unsigned char ZT_DEFAULT_WORLD[ZT_DEFAULT_WORLD_LENGTH] = {");
+	// for (unsigned int i = 0; i < outtmp.size(); ++i)
+	// {
+	// 	const unsigned char *d = (const unsigned char *)outtmp.data();
+	// 	if (i > 0)
+	// 		fprintf(stdout, ",");
+	// 	fprintf(stdout, "0x%.2x", (unsigned int)d[i]);
+	// }
+	// fprintf(stdout, "};" ZT_EOL_S);
+	return 0;
+}
+
+void binaryToJson()
+{
+	// Read planet file into memory
+	std::string binContent;
+	if (!OSUtils::readFile("planet", binContent))
+	{
+		fprintf(stderr, "Failed to open planet file." ZT_EOL_S);
+		return;
+	}
+
+	// Deserialize the binary data into a World object
+	Buffer<ZT_WORLD_MAX_SERIALIZED_LENGTH> binBuffer(binContent.data(), binContent.size());
+	World world;
+	if (!world.deserialize(binBuffer, 0))
+	{
+		fprintf(stderr, "Failed to deserialize planet content." ZT_EOL_S);
+		return;
+	}
+
+	// Create a JSON object to store the world data
+	json worldJson;
+
+	// Add roots array to the JSON object
+	json rootsJson;
+	for (const auto &root : world.roots())
+	{
+		json rootJson;
+
+		// Add identity to the root JSON object
+		char identityStr[ZT_IDENTITY_STRING_BUFFER_LENGTH];
+		root.identity.toString(true, identityStr); // Include private key
+		rootJson["identity"] = identityStr;
+
+		// Add stableEndpoints array to the root JSON object
+		json stableEndpointsJson;
+		for (const auto &endpoint : root.stableEndpoints)
+		{
+			char ipStr[64];
+			endpoint.toString(ipStr);
+			stableEndpointsJson.push_back(ipStr);
+		}
+		rootJson["stableEndpoints"] = stableEndpointsJson;
+
+		rootsJson.push_back(rootJson);
+	}
+	worldJson["roots"] = rootsJson;
+	std::string jsonStr = worldJson.dump(4);
+	printf("World JSON:\n%s\n", jsonStr.c_str());
+	if (!OSUtils::writeFile("planet.json", jsonStr.c_str(), jsonStr.size()))
+	{
+		fprintf(stderr, "Failed to write JSON data to planet.json." ZT_EOL_S);
+	}
+	else
+	{
+		printf("JSON data successfully written to planet.json." ZT_EOL_S);
+	}
+}
+
+int main(int argc, char **argv)
+{
+	bool json2bin = false;
+	bool bin2json = false;
+
+	for (int i = 1; i < argc; ++i)
+	{
+		std::string arg = argv[i];
+		if (arg == "-h" || arg == "--help")
+		{
+			printHelp();
+			return 0;
+		}
+		else if (arg == "-j" || arg == "--json2bin")
+		{
+			json2bin = true;
+		}
+		else if (arg == "-b" || arg == "--bin2json")
+		{
+			bin2json = true;
+		}
+	}
+
+	if (json2bin && bin2json)
+	{
+		printf("Error: Cannot specify both JSON to binary and binary to JSON conversion options.\n");
+		printHelp();
+		return 1;
+	}
+
+	if (json2bin)
+	{
+		jsonToBinary();
+	}
+	else if (bin2json)
+	{
+		binaryToJson();
+	}
+	else
+	{
+		printHelp();
+		return 1;
+	}
+
+	return 0;
+}
