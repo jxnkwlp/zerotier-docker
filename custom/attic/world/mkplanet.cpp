@@ -53,11 +53,11 @@ using json = nlohmann::json;
 
 void printHelp()
 {
-	printf("Usage: mkworld [options]\n");
+	printf("Usage: mkplanet [options]\n");
 	printf("Options:\n");
 	printf("  -h, --help          Display this help message\n");
-	printf("  -j, --json2bin      Convert from JSON file to world.bin\n");
-	printf("  -b, --bin2json      Convert from world.bin to JSON format\n");
+	printf("  -j, --json2bin      Convert from JSON file to planet\n");
+	printf("  -b, --bin2json      Convert from planet to JSON format\n");
 }
 
 int jsonToBinary()
@@ -96,13 +96,12 @@ int jsonToBinary()
 	const uint64_t ts = 1567191349589ULL; // August 30th, 2019
 
 	std::string fileContent;
-	if (!OSUtils::readFile("moon.json", fileContent))
+	if (!OSUtils::readFile("planet.json", fileContent))
 	{
-		fprintf(stderr, "Failed to open config file." ZT_EOL_S);
+		fprintf(stderr, "Failed to open planet file." ZT_EOL_S);
 		return 1;
 	}
 
-	// 官方服务器
 	// // Los Angeles
 	// roots.push_back(World::Root());
 	// roots.back().identity = Identity("3a46f1bf30:0:76e66fab33e28549a62ee2064d1843273c2c300ba45c3f20bef02dbad225723bb59a9bb4b13535730961aeecf5a163ace477cceb0727025b99ac14a5166a09a3");
@@ -127,7 +126,6 @@ int jsonToBinary()
 	// roots.back().stableEndpoints.push_back(InetAddress("195.181.173.159/443"));
 	// roots.back().stableEndpoints.push_back(InetAddress("2a02:6ea0:c024::/443"));
 
-	// 解析JSON数据
 	json config = json::parse(fileContent);
 
 	for (auto &root : config["roots"])
@@ -154,30 +152,30 @@ int jsonToBinary()
 		return 1;
 	}
 
-	OSUtils::writeFile("world.bin", std::string((const char *)outtmp.data(), outtmp.size()));
-	fprintf(stderr, "INFO: world.bin written with %u bytes of binary world data." ZT_EOL_S, outtmp.size());
+	OSUtils::writeFile("planet", std::string((const char *)outtmp.data(), outtmp.size()));
+	fprintf(stderr, "INFO: planet written with %u bytes of binary world data." ZT_EOL_S, outtmp.size());
 
-	fprintf(stdout, ZT_EOL_S);
-	fprintf(stdout, "#define ZT_DEFAULT_WORLD_LENGTH %u" ZT_EOL_S, outtmp.size());
-	fprintf(stdout, "static const unsigned char ZT_DEFAULT_WORLD[ZT_DEFAULT_WORLD_LENGTH] = {");
-	for (unsigned int i = 0; i < outtmp.size(); ++i)
-	{
-		const unsigned char *d = (const unsigned char *)outtmp.data();
-		if (i > 0)
-			fprintf(stdout, ",");
-		fprintf(stdout, "0x%.2x", (unsigned int)d[i]);
-	}
-	fprintf(stdout, "};" ZT_EOL_S);
+	// fprintf(stdout, ZT_EOL_S);
+	// fprintf(stdout, "#define ZT_DEFAULT_WORLD_LENGTH %u" ZT_EOL_S, outtmp.size());
+	// fprintf(stdout, "static const unsigned char ZT_DEFAULT_WORLD[ZT_DEFAULT_WORLD_LENGTH] = {");
+	// for (unsigned int i = 0; i < outtmp.size(); ++i)
+	// {
+	// 	const unsigned char *d = (const unsigned char *)outtmp.data();
+	// 	if (i > 0)
+	// 		fprintf(stdout, ",");
+	// 	fprintf(stdout, "0x%.2x", (unsigned int)d[i]);
+	// }
+	// fprintf(stdout, "};" ZT_EOL_S);
 	return 0;
 }
 
 void binaryToJson()
 {
-	// Read world.bin file into memory
+	// Read planet file into memory
 	std::string binContent;
-	if (!OSUtils::readFile("world.bin", binContent))
+	if (!OSUtils::readFile("planet", binContent))
 	{
-		fprintf(stderr, "Failed to open world.bin file." ZT_EOL_S);
+		fprintf(stderr, "Failed to open planet file." ZT_EOL_S);
 		return;
 	}
 
@@ -186,7 +184,7 @@ void binaryToJson()
 	World world;
 	if (!world.deserialize(binBuffer, 0))
 	{
-		fprintf(stderr, "Failed to deserialize world.bin content." ZT_EOL_S);
+		fprintf(stderr, "Failed to deserialize planet content." ZT_EOL_S);
 		return;
 	}
 
@@ -219,13 +217,13 @@ void binaryToJson()
 	worldJson["roots"] = rootsJson;
 	std::string jsonStr = worldJson.dump(4);
 	printf("World JSON:\n%s\n", jsonStr.c_str());
-	if (!OSUtils::writeFile("config.json", jsonStr.c_str(), jsonStr.size()))
+	if (!OSUtils::writeFile("planet.json", jsonStr.c_str(), jsonStr.size()))
 	{
-		fprintf(stderr, "Failed to write JSON data to config.json." ZT_EOL_S);
+		fprintf(stderr, "Failed to write JSON data to planet.json." ZT_EOL_S);
 	}
 	else
 	{
-		printf("JSON data successfully written to config.json." ZT_EOL_S);
+		printf("JSON data successfully written to planet.json." ZT_EOL_S);
 	}
 }
 
@@ -252,12 +250,6 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (!(json2bin || bin2json))
-	{
-		// Default behavior: convert from JSON to world.bin
-		json2bin = true;
-	}
-
 	if (json2bin && bin2json)
 	{
 		printf("Error: Cannot specify both JSON to binary and binary to JSON conversion options.\n");
@@ -272,6 +264,11 @@ int main(int argc, char **argv)
 	else if (bin2json)
 	{
 		binaryToJson();
+	}
+	else
+	{
+		printHelp();
+		return 1;
 	}
 
 	return 0;

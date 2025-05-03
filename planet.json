@@ -1,0 +1,32 @@
+{
+    "roots": [
+        {
+            "identity": "cafe80ed74:0:1e86a3ff8617bef537b99ba714408bf0ce0e143f8acf6ec93e94d4597aaf16097d4f1cec69b44fda99665ca99c57f4a16641b9e39b2e6d3180dc8f1ae8de89f8",
+            "stableEndpoints": [
+                "185.152.67.145/9993",
+                "2a02:6ea0:c87f::1/9993"
+            ]
+        },
+        {
+            "identity": "778cde7190:0:3f6681a99e5ad1895e9fba33e6212d4454e168bcec7112101bf000956ed8e92e42892cb6f2ec410881a84ab19da50e1287ba3d926c3a1f755cccf299a1207055",
+            "stableEndpoints": [
+                "103.195.103.66/9993",
+                "2605:9880:400:c3:254:f2bc:a1f7:19/9993"
+            ]
+        },
+        {
+            "identity": "cafefd6717:0:4c74ede01850e7e645fb779d700c45b9af91a048cc858ad0c4f25174bf29b460e5cc3e98cd84ee30fea57c14f1495add0cc0e5b19d78afcd14170c5756180800",
+            "stableEndpoints": [
+                "79.127.159.187/9993",
+                "2a02:6ea0:d368::9993/9993"
+            ]
+        },
+        {
+            "identity": "cafe04eba9:0:6c6a9d1dea55c1616bfe2a2b8f0ff9a8cacaf70374fb1f39e3bef81cbfebef17b7228268a0a2a29d3488c752565c6c965cbd6506ec24397cc8a5d9d15285a87f",
+            "stableEndpoints": [
+                "84.17.53.155/9993",
+                "2a02:6ea0:d405::9993/9993"
+            ]
+        }
+    ]
+}
