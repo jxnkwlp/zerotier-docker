@@ -1,8 +1,8 @@
 diff --git a/make-linux.mk b/make-linux.mk
-index efc1badf..34beff93 100644
+index 5ac8a7d95..67515a423 100644
 --- a/make-linux.mk
 +++ b/make-linux.mk
-@@ -292,6 +292,7 @@ ifeq ($(ZT_IA32),1)
+@@ -307,6 +307,7 @@ ifeq ($(ZT_IA32),1)
  	ZT_USE_X64_ASM_ED25519=0
  endif
  
